@@ -1,5 +1,7 @@
-export const PageNotFound = () => (
-  <>
-    <h3> 404 Page not found</h3>
-  </>
-);
+export const PageNotFound = () => {
+  return (
+    <>
+      <h3> 404 Page not found</h3>
+    </>
+  )
+};
