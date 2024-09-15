@@ -1,21 +1,40 @@
-import axios from 'axios';
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../slices/authSlice';
 import { useFormik } from 'formik';
 import { Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../../hooks/index';
+//import useAuth from '../../hooks/index';
 import regImage from '../img/hello.jpg';
+import routes from '../../routes';
 
 const RegistrationForm = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [invalid, setInvalid] = useState(false)
-  const auth = useAuth()
   const formik = useFormik({
     initialValues: {
       username: '',
       password: '',
     },
-    onSubmit: ({username, password}) => {
-      axios.post('/api/v1/login', {
+    onSubmit: async ({username, password}) => {
+      
+      try {
+        await dispatch(
+          loginUser({
+            username: username,
+            password: password,
+          }),
+        ).unwrap();
+
+        navigate(routes.chat);
+
+      } catch (e) {
+          if (e.statusCode === 401) {
+            setInvalid(true);
+          }
+      }
+      /*axios.post('/api/v1/login', {
         username,
         password
       })
@@ -27,11 +46,11 @@ const RegistrationForm = () => {
         localStorage.setItem('isLogged', true)
         auth.logIn()
       })
-      .catch (() => setInvalid(true));
+      .catch (() => setInvalid(true));*/
 
     }
   });
-  const navigate = useNavigate()
+
   const renderForm = () => {
     return (
       <>
@@ -89,7 +108,7 @@ const RegistrationForm = () => {
   }
   return ( 
     <>
-      {auth.loggedIn ? navigate(-1) : renderForm() }
+      {/*auth.loggedIn ? navigate(-1) : */renderForm() }
     </>
   );
 }
