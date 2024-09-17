@@ -16,7 +16,24 @@ export const fetchMessages = createAsyncThunk(
       }
       throw new Error('Server Error!');
     } catch (error) {
-      console.log(error);
+      console.log('Ошибка при загрузке сообщений:', error);
+      throw error;
+    }
+  },
+);
+
+export const sendMessage = createAsyncThunk(
+  'messages/sendMessage',
+  async ({ message, token }) => {
+    try {
+      const response = await axios.post(routes.messages, message, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при отправке сообщения:', error);
       throw error;
     }
   },
@@ -44,6 +61,18 @@ const messageSlice = createSlice({
         state.channels = action.payload;
       })
       .addCase(fetchMessages.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      })
+      .addCase(sendMessage.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.messages.push(action.payload);
+      })
+      .addCase(sendMessage.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       });

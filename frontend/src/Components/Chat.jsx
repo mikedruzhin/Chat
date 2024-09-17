@@ -5,14 +5,22 @@ import  QuitBtn from './QuitBtn';
 import Navigation from './Navigation';
 import { logoutUser } from './slices/authSlice';
 import { fetchChannels } from './slices/channelsSlice';
-import { fetchMessages } from './slices/messageSlice'
+import {
+  fetchMessages,
+  addMessage,
+  sendMessage as sendMessageSlice,
+} from './slices/messageSlice';
+import setupSocket from '../socket';
 import routes from '../routes';
 
 export const MainPage = () => {
   const token = useSelector((state) => state.auth.token);
+  const username = useSelector((state) => state.auth.user);
   const channels = useSelector((state) => state.channels.channels);
   const [activeChannel, setActiveChannel] = useState(0);
   const messages = useSelector((state) => state.message.messages);
+  console.log(messages)
+  const [socket, setSocket] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const channelsRef = useRef();
@@ -43,6 +51,35 @@ export const MainPage = () => {
     };
     fetchData();
   }, [dispatch, token, navigate]);
+
+  useEffect(() => {
+    const newSocket = setupSocket(dispatch, username, addMessage);
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [dispatch, username]);
+
+  const handleMessageSubmit = async (e) => {
+    e.preventDefault();
+    const messageBody = e.target.body.value;
+    
+    if (channels[activeChannel] && token) {
+      const message = {
+        body: messageBody,
+        channelId: channels[activeChannel].id,
+        username,
+      };
+      try {
+        await dispatch(sendMessageSlice({ message, token }));
+        e.target.body.value = '';
+        inputRef.current.focus();
+      } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error);
+      }
+    }
+  };
 
   const handleChannelClick = (selectedChannelIndex) => {
     setActiveChannel(selectedChannelIndex);
@@ -133,6 +170,7 @@ export const MainPage = () => {
                 <form
                   noValidate
                   className="py-1 border rounded-2"
+                  onSubmit={handleMessageSubmit}
                 >
                   <div className="input-group has-validation">
                     <input
