@@ -1,8 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import  QuitBtn from './QuitBtn';
 import Navigation from './Navigation';
+import NewChannelModal from './Modal/CreateNewChannel';
+import EditChannelModal from './Modal/EditChannelName';
+import RemoveChannel from './Modal/RemoveChannel';
+import Dropdown from 'react-bootstrap/Dropdown';
 import { logoutUser } from './slices/authSlice';
 import { fetchChannels } from './slices/channelsSlice';
 import {
@@ -19,13 +24,19 @@ export const MainPage = () => {
   const channels = useSelector((state) => state.channels.channels);
   const [activeChannel, setActiveChannel] = useState(0);
   const messages = useSelector((state) => state.message.messages);
-  console.log(messages)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const channelNames = channels.map((channel) => channel.name);
   const [socket, setSocket] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingChannel, setEditingChannel] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [channelToDelete, setChannelToDelete] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const channelsRef = useRef();
   const messagesRef = useRef();
   const inputRef = useRef();
+  const { t } = useTranslation();
 
   const activeChannelMessage = channels[activeChannel]
     ? messages.filter(
@@ -88,6 +99,30 @@ export const MainPage = () => {
     }
   };
 
+  const handleOpenModal = () => setIsModalOpen(true);
+
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  const handleOpenDeleteModal = (channelId) => {
+    setChannelToDelete(channelId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setChannelToDelete(null);
+  };
+
+  const startEditing = (channel) => {
+    setEditingChannel(channel);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingChannel(null);
+  };
+
   return (
     <>
       <Navigation child={<QuitBtn />} />
@@ -99,6 +134,7 @@ export const MainPage = () => {
               <button
                 type="button"
                 className="p-0 text-primary btn btn-group-vertical"
+                onClick={handleOpenModal}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -131,6 +167,35 @@ export const MainPage = () => {
                       <span className="me-1">#</span>
                       {channel.name}
                     </button>
+                    {channel.removable && (
+                      <Dropdown>
+                        <Dropdown.Toggle
+                          split
+                          variant={index === activeChannel ? 'secondary' : null}
+                          className="flex-grow-0 dropdown-toggle dropdown-toggle-split btn"
+                          id={`dropdownMenuButton-${channel.id}`}
+                          style={{
+                            borderBottomLeftRadius: '0',
+                            borderTopLeftRadius: '0',
+                          }}
+                        >
+                          <span className="visually-hidden">
+                            {t('mainPage.channelMenu')}
+                          </span>
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                          <Dropdown.Item
+                            onClick={() => handleOpenDeleteModal(channel.id)}
+                          >
+                            {t('mainPage.deleteChannel')}
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => startEditing(channel)}>
+                            {t('mainPage.renameChannel')}
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    )}
                   </div>
                 </li>
               ))}
@@ -204,6 +269,38 @@ export const MainPage = () => {
           </div>
         </div>
       </div>
+      {isModalOpen && (
+        <NewChannelModal
+          onClose={handleCloseModal}
+          isModalOpen={isModalOpen}
+          channelNames={channelNames}
+          token={token}
+          lastChannel={setActiveChannel}
+        />
+      )}
+
+      {editingChannel && (
+        <EditChannelModal
+          onClose={handleCloseEditModal}
+          isModalOpen={isEditModalOpen}
+          channel={editingChannel}
+          token={token}
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <RemoveChannel
+          show={isDeleteModalOpen}
+          onHide={handleCloseDeleteModal}
+          channelId={channelToDelete}
+          token={token}
+          onChannelDeleted={() => {
+            if (activeChannel === channelToDelete) {
+              setActiveChannel(0);
+            }
+          }}
+        />
+      )}
     </>
   )
 };

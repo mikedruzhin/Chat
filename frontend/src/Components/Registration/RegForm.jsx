@@ -4,13 +4,14 @@ import { loginUser } from '../slices/authSlice';
 import { useFormik } from 'formik';
 import { Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-//import useAuth from '../../hooks/index';
+import { useTranslation } from 'react-i18next';
 import regImage from '../img/hello.jpg';
 import routes from '../../routes';
 
 const RegistrationForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [invalid, setInvalid] = useState(false)
   const formik = useFormik({
     initialValues: {
@@ -34,24 +35,11 @@ const RegistrationForm = () => {
             setInvalid(true);
           }
       }
-      /*axios.post('/api/v1/login', {
-        username,
-        password
-      })
-      .then((response) => {
-        const userId = {
-          token: response.data.token
-        }
-        localStorage.setItem('token', JSON.stringify(userId))
-        localStorage.setItem('isLogged', true)
-        auth.logIn()
-      })
-      .catch (() => setInvalid(true));*/
-
     }
   });
-
+  
   const renderForm = () => {
+    
     return (
       <>
         <div className="card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5">
@@ -65,7 +53,7 @@ const RegistrationForm = () => {
           <Form 
             className="col-12 col-md-6 mt-3 mt-md-0"
             onSubmit={formik.handleSubmit}>
-            <h1 className="text-center mb-4">Войти</h1>
+            <h1 className="text-center mb-4">{t('loginPage.enter')}</h1>
             <div className="form-floating mb-3">
               <input
                 id="username"
@@ -75,7 +63,7 @@ const RegistrationForm = () => {
                 value={formik.values.username}
                 className={invalid ? "form-control is-invalid" : "form-control"}
               />
-              <label htmlFor="username">Ваш ник</label>
+              <label htmlFor="username">{t('loginPage.nickname')}</label>
             </div>
             <div className="form-floating mb-4">
               <input
@@ -87,12 +75,12 @@ const RegistrationForm = () => {
                 value={formik.values.password}
                 className={invalid ? "form-control is-invalid" : "form-control"}
               />
-              <label htmlFor="password">Пароль</label>
-              {invalid ? <div className="invalid-tooltip">Неверные имя пользователя или пароль</div> : null}
+              <label htmlFor="password">{t('loginPage.password')}</label>
+              {invalid ? <div className="invalid-tooltip">{t('loginPage.loginError')}</div> : null}
 
             </div>
             
-            <button className="w-100 mb-3 btn btn-outline-primary" type="submit">Войти</button>
+            <button className="w-100 mb-3 btn btn-outline-primary" type="submit">{t('loginPage.enter')}</button>
             
           </Form>
         </div>
@@ -100,7 +88,7 @@ const RegistrationForm = () => {
           <div className="text-center">
             <span>Нет аккаунта ?</span>
             &nbsp;
-            <a href="/">Регистрация</a>
+            <a href="/">{t('loginPage.reg')}</a>
           </div>
         </div>
       </>
