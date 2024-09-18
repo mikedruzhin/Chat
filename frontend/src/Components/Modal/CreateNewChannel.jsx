@@ -9,12 +9,14 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
+import { useProfanityFilter } from '../ProfanityContext';
 import { createChannels, fetchChannels } from '../slices/channelsSlice';
 
 const NewChannelModal = ({
   onClose, isModalOpen, token, lastChannel,
 }) => {
   const { t } = useTranslation();
+  const filter = useProfanityFilter();
   const dispatch = useDispatch();
   const channels = useSelector((state) => state.channels.channels);
   const validationSchema = (
@@ -37,8 +39,8 @@ const NewChannelModal = ({
     onSubmit: async (values, { setSubmitting }) => {
       try {
         setSubmitting(true);
-        //const cleanedName = filter.clean(values.name);
-        await dispatch(createChannels({ name: values.name, token }));
+        const cleanedName = filter.clean(values.name);
+        await dispatch(createChannels({ name: cleanedName, token }));
         lastChannel(channels.length);
         dispatch(fetchChannels(token));
         onClose();

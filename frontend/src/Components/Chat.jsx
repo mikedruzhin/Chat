@@ -1,42 +1,84 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import  QuitBtn from './QuitBtn';
+import { useNavigate } from 'react-router-dom';
+import Dropdown from 'react-bootstrap/Dropdown';
+import QuitBtn from './QuitBtn';
 import Navigation from './Navigation';
 import NewChannelModal from './Modal/CreateNewChannel';
 import EditChannelModal from './Modal/EditChannelName';
 import RemoveChannel from './Modal/RemoveChannel';
-import Dropdown from 'react-bootstrap/Dropdown';
+import setupSocket from '../socket';
 import { logoutUser } from './slices/authSlice';
-import { fetchChannels } from './slices/channelsSlice';
+import { fetchChannels, addChannel } from './slices/channelsSlice';
 import {
   fetchMessages,
   addMessage,
   sendMessage as sendMessageSlice,
 } from './slices/messageSlice';
-import setupSocket from '../socket';
 import routes from '../routes';
+import { useProfanityFilter } from './ProfanityContext';
 
-export const MainPage = () => {
+const Chat = () => {
   const token = useSelector((state) => state.auth.token);
   const username = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   const channels = useSelector((state) => state.channels.channels);
   const [activeChannel, setActiveChannel] = useState(0);
   const messages = useSelector((state) => state.message.messages);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const channelNames = channels.map((channel) => channel.name);
-  const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useState(null); // eslint-disable-line
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [channelToDelete, setChannelToDelete] = useState(null);
-  const dispatch = useDispatch();
+  const { t } = useTranslation();
+  const filter = useProfanityFilter();
   const navigate = useNavigate();
   const channelsRef = useRef();
   const messagesRef = useRef();
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [scrollToBottom, setScrollToBottom] = useState(true);
   const inputRef = useRef();
-  const { t } = useTranslation();
+
+  const scrollToBottomIfNeeded = () => {
+    if (messagesRef.current) {
+      if (scrollToBottom || isAtBottom) {
+        messagesRef.current.scrollIntoView({ behavior: 'smooth' });
+        messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = messagesRef.current;
+      if (container) {
+        const isBottom = container.scrollHeight - container.scrollTop
+          === container.clientHeight;
+        setIsAtBottom(isBottom);
+        if (isBottom) {
+          setScrollToBottom(true);
+        }
+      }
+    };
+
+    const container = messagesRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    scrollToBottomIfNeeded();
+  }, [messages, scrollToBottomIfNeeded]);
 
   const activeChannelMessage = channels[activeChannel]
     ? messages.filter(
@@ -61,10 +103,10 @@ export const MainPage = () => {
       }
     };
     fetchData();
-  }, [dispatch, token, navigate]);
+  }, [dispatch, token, navigate, scrollToBottom]);
 
   useEffect(() => {
-    const newSocket = setupSocket(dispatch, username, addMessage);
+    const newSocket = setupSocket(dispatch, username, addMessage, addChannel);
     setSocket(newSocket);
 
     return () => {
@@ -75,27 +117,21 @@ export const MainPage = () => {
   const handleMessageSubmit = async (e) => {
     e.preventDefault();
     const messageBody = e.target.body.value;
-    
-    if (channels[activeChannel] && token) {
+    const cleanMessage = filter.clean(messageBody);
+    if (cleanMessage && channels[activeChannel] && token) {
       const message = {
-        body: messageBody,
+        body: cleanMessage,
         channelId: channels[activeChannel].id,
         username,
       };
       try {
         await dispatch(sendMessageSlice({ message, token }));
         e.target.body.value = '';
+        setScrollToBottom(true);
         inputRef.current.focus();
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
       }
-    }
-  };
-
-  const handleChannelClick = (selectedChannelIndex) => {
-    setActiveChannel(selectedChannelIndex);
-    if (inputRef.current) {
-      inputRef.current.focus();
     }
   };
 
@@ -123,6 +159,13 @@ export const MainPage = () => {
     setEditingChannel(null);
   };
 
+  const handleChannelClick = (selectedChannelIndex) => {
+    setActiveChannel(selectedChannelIndex);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
   return (
     <>
       <Navigation child={<QuitBtn />} />
@@ -130,7 +173,7 @@ export const MainPage = () => {
         <div className="row h-100 bg-white flex-md-row">
           <div className="col-4 col-md-2 border-end px-0 bg-light flex-column h-100 d-flex">
             <div className="d-flex mt-1 justify-content-between mb-2 ps-4 pe-2 p-4">
-              <b>Каналы</b>
+              <b>{t('mainPage.channels')}</b>
               <button
                 type="button"
                 className="p-0 text-primary btn btn-group-vertical"
@@ -165,8 +208,9 @@ export const MainPage = () => {
                       onClick={() => handleChannelClick(index)}
                     >
                       <span className="me-1">#</span>
-                      {channel.name}
+                      {filter.clean(channel.name)}
                     </button>
+
                     {channel.removable && (
                       <Dropdown>
                         <Dropdown.Toggle
@@ -213,7 +257,9 @@ export const MainPage = () => {
                   </p>
                 )}
                 <span className="text-muted">
-                  {`${activeChannelMessage.length} сообщений`}    {/*потом нужно поправить*/}
+                  {t('mainPage.messagesCount.key', {
+                    count: activeChannelMessage.length,
+                  })}
                 </span>
               </div>
               <div
@@ -241,7 +287,7 @@ export const MainPage = () => {
                     <input
                       name="body"
                       aria-label="Новое сообщение"
-                      placeholder={'Введите сообщение...'}
+                      placeholder={t('mainPage.enterMessage')}
                       className="border-0 p-0 ps-2 form-control"
                       ref={inputRef}
                     />
@@ -259,7 +305,7 @@ export const MainPage = () => {
                         />
                       </svg>
                       <span className="visually-hidden">
-                        {'Отправить'}
+                        {t('mainPage.send')}
                       </span>
                     </button>
                   </div>
@@ -269,6 +315,7 @@ export const MainPage = () => {
           </div>
         </div>
       </div>
+
       {isModalOpen && (
         <NewChannelModal
           onClose={handleCloseModal}
@@ -302,5 +349,7 @@ export const MainPage = () => {
         />
       )}
     </>
-  )
+  );
 };
+
+export default Chat;

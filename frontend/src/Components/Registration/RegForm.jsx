@@ -1,104 +1,179 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  Formik, Form, Field, useField,
+} from 'formik';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../slices/authSlice';
-import { useFormik } from 'formik';
-import { Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import regImage from '../img/hello.jpg';
-import routes from '../../routes';
+import { useNavigate } from 'react-router-dom';
+import * as yup from 'yup';
+import regImage from '../img/reg.jpg';
+import { regUser } from '../slices/authSlice';
+
+const CustomErrorMessage = ({ name }) => {
+  const [field, meta] = useField(name); // eslint-disable-line
+  return meta.touched && meta.error ? (
+    <div className="invalid-tooltip">{meta.error}</div>
+  ) : null;
+};
 
 const RegistrationForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { error } = useSelector((state) => state.auth);
+  const [apiError, setApiError] = useState(null);
   const { t } = useTranslation();
-  const [invalid, setInvalid] = useState(false)
-  const formik = useFormik({
-    initialValues: {
-      username: '',
-      password: '',
-    },
-    onSubmit: async ({username, password}) => {
-      
-      try {
-        await dispatch(
-          loginUser({
-            username: username,
-            password: password,
-          }),
-        ).unwrap();
 
-        navigate(routes.chat);
-
-      } catch (e) {
-          if (e.statusCode === 401) {
-            setInvalid(true);
-          }
-      }
+  useEffect(() => {
+    if (error && error.message === 'Username already exists') {
+      setApiError(t('regForm.regError'));
+    } else {
+      setApiError(null);
     }
+  }, [error, t]);
+
+  const loginSchema = yup.object().shape({
+    name: yup
+      .string()
+      .trim()
+      .required(t('validation.required'))
+      .min(3, t('regForm.charactersCount'))
+      .max(20, t('validation.maxCount')),
+    password: yup
+      .string()
+      .required(t('validation.required'))
+      .min(6, t('validation.minCountPass')),
+    confirmPassword: yup
+      .string()
+      .oneOf([yup.ref('password'), null], t('validation.matchPass'))
+      .required(t('validation.matchPass')),
   });
-  
-  const renderForm = () => {
-    
-    return (
-      <>
-        <div className="card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5">
-          <div>
-            <img
-              src={regImage}
-              alt=""
-              className="rounded-circle"
-            />
-          </div>
-          <Form 
-            className="col-12 col-md-6 mt-3 mt-md-0"
-            onSubmit={formik.handleSubmit}>
-            <h1 className="text-center mb-4">{t('loginPage.enter')}</h1>
-            <div className="form-floating mb-3">
-              <input
-                id="username"
-                name="username"
-                placeholder='Ваш ник'
-                onChange={formik.handleChange}
-                value={formik.values.username}
-                className={invalid ? "form-control is-invalid" : "form-control"}
+
+  return (
+    <div className="card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5">
+      <div>
+        <img
+          src={regImage}
+          alt={t('loginPage.reg')}
+          className="rounded-circle"
+        />
+      </div>
+      <Formik
+        initialValues={{ name: '', password: '', confirmPassword: '' }}
+        validationSchema={loginSchema}
+        onSubmit={async (values, { setSubmitting, setErrors }) => {
+          try {
+            const resultAction = await dispatch(
+              regUser({
+                username: values.name,
+                password: values.password,
+              }),
+            );
+
+            if (regUser.fulfilled.match(resultAction)) {
+              navigate('/');
+            } else {
+              throw new Error(resultAction.error.message || 'Unknown error');
+            }
+          } catch (regError) {
+            const errorMessage = regError.message === 'Username already exists'
+              ? t('regForm.regError')
+              : t('regForm.regErrors');
+
+            setErrors({
+              name: '',
+              password: '',
+              confirmPassword: errorMessage,
+            });
+            setApiError(errorMessage);
+            setSubmitting(false);
+          }
+        }}
+        validate={(values) => {
+          const validationErrors = {};
+          try {
+            loginSchema.validateSync(values, { abortEarly: false });
+          } catch (err) {
+            err.inner.forEach((error) => { // eslint-disable-line
+              validationErrors[error.path] = error.message;
+            });
+          }
+          return validationErrors;
+        }}
+      >
+        {({ errors, touched }) => (
+          <Form className="w-50">
+            <h1 className="text-center mb-4">{t('loginPage.reg')}</h1>
+            <div
+              className={`form-floating mb-3 ${
+                (errors.name && touched.name) || apiError ? 'has-error' : ''
+              }`}
+            >
+              <Field
+                placeholder={t('regForm.charactersCount')}
+                name="name"
+                autoComplete="username"
+                id="name"
+                className={`form-control ${
+                  (errors.name && touched.name) || apiError
+                    ? 'is-invalid'
+                    : ''
+                }`}
               />
-              <label htmlFor="username">{t('loginPage.nickname')}</label>
+              <label htmlFor="name" className="form-label">
+                {t('regForm.userName')}
+              </label>
+              <CustomErrorMessage name="name" />
             </div>
-            <div className="form-floating mb-4">
-              <input
-                id="password"
+            <div
+              className={`form-floating mb-3 ${
+                (errors.password && touched.password) || apiError ? 'has-error' : ''
+              }`}
+            >
+              <Field
+                placeholder={t('regForm.charasterCountPassword')}
                 name="password"
+                aria-describedby="passwordHelpBlock"
                 type="password"
-                placeholder='Пароль'
-                onChange={formik.handleChange}
-                value={formik.values.password}
-                className={invalid ? "form-control is-invalid" : "form-control"}
+                id="password"
+                className={`form-control ${
+                  (errors.password && touched.password) || apiError
+                    ? 'is-invalid'
+                    : ''
+                }`}
               />
               <label htmlFor="password">{t('loginPage.password')}</label>
-              {invalid ? <div className="invalid-tooltip">{t('loginPage.loginError')}</div> : null}
-
+              <CustomErrorMessage name="password" />
             </div>
-            
-            <button className="w-100 mb-3 btn btn-outline-primary" type="submit">{t('loginPage.enter')}</button>
-            
+            <div
+              className={`form-floating mb-3 ${
+                (errors.confirmPassword && touched.confirmPassword) || apiError ? 'has-error' : ''
+              }`}
+            >
+              <Field
+                placeholder={t('regForm.confirmPassword')}
+                name="confirmPassword"
+                type="password"
+                id="confirmPassword"
+                className={`form-control ${
+                  (errors.confirmPassword && touched.confirmPassword) || apiError
+                    ? 'is-invalid'
+                    : ''
+                }`}
+              />
+              <label htmlFor="confirmPassword">
+                {t('regForm.confirmPassword')}
+              </label>
+              <CustomErrorMessage name="confirmPassword" />
+              {apiError && <div className="invalid-tooltip">{apiError}</div>}
+            </div>
+            <button type="submit" className="w-100 btn btn-outline-primary">
+              {t('regForm.register')}
+            </button>
           </Form>
-        </div>
-        <div className="card-footer p-4">
-          <div className="text-center">
-            <span>Нет аккаунта ?</span>
-            &nbsp;
-            <a href="/">{t('loginPage.reg')}</a>
-          </div>
-        </div>
-      </>
-    )
-  }
-  return ( 
-    <>
-      {/*auth.loggedIn ? navigate(-1) : */renderForm() }
-    </>
+        )}
+      </Formik>
+    </div>
   );
-}
+};
 
 export default RegistrationForm;
