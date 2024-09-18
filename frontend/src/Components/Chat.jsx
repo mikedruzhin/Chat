@@ -38,47 +38,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const channelsRef = useRef();
   const messagesRef = useRef();
-  const [isAtBottom, setIsAtBottom] = useState(true);
-  const [scrollToBottom, setScrollToBottom] = useState(true);
   const inputRef = useRef();
-
-  const scrollToBottomIfNeeded = () => {
-    if (messagesRef.current) {
-      if (scrollToBottom || isAtBottom) {
-        messagesRef.current.scrollIntoView({ behavior: 'smooth' });
-        messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-      }
-    }
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const container = messagesRef.current;
-      if (container) {
-        const isBottom = container.scrollHeight - container.scrollTop
-          === container.clientHeight;
-        setIsAtBottom(isBottom);
-        if (isBottom) {
-          setScrollToBottom(true);
-        }
-      }
-    };
-
-    const container = messagesRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    scrollToBottomIfNeeded();
-  }, [messages, scrollToBottomIfNeeded]);
 
   const activeChannelMessage = channels[activeChannel]
     ? messages.filter(
@@ -103,7 +63,7 @@ const Chat = () => {
       }
     };
     fetchData();
-  }, [dispatch, token, navigate, scrollToBottom]);
+  }, [dispatch, token, navigate]);
 
   useEffect(() => {
     const newSocket = setupSocket(dispatch, username, addMessage, addChannel);
