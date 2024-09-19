@@ -25,7 +25,9 @@ const Chat = () => {
   const dispatch = useDispatch();
   const channels = useSelector((state) => state.channels.channels);
   const [activeChannel, setActiveChannel] = useState(0);
+  console.log(channels);
   const messages = useSelector((state) => state.message.messages);
+  console.log(messages);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const channelNames = channels.map((channel) => channel.name);
   const [socket, setSocket] = useState(null); // eslint-disable-line
@@ -226,14 +228,16 @@ const Chat = () => {
                 className="chat-messages overflow-auto px-5"
                 ref={messagesRef}
               >
-                {messages.map((message) => (message.channelId === channels[activeChannel]?.id ? (
-                  <div key={message.id} className="text-break mb-2">
-                    <b>{message.username}</b>
-                    {': '}
-                    {' '}
-                    {message.body}
-                  </div>
-                ) : null))}
+                {messages
+                  .filter((message) => (message.channelId === channels[activeChannel].id))
+                  .map((message) => (
+                    <div key={message.id} className="text-break mb-2">
+                      <b>{message.username}</b>
+                      {': '}
+                      {' '}
+                      {message.body}
+                    </div>
+                  ))}
                 <div ref={messagesRef} />
               </div>
               <div className="mt-auto px-5 py-3">
