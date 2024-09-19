@@ -87,7 +87,6 @@ const Chat = () => {
       try {
         await dispatch(sendMessageSlice({ message, token }));
         e.target.body.value = '';
-        setScrollToBottom(true);
         inputRef.current.focus();
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
