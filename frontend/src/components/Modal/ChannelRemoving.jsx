@@ -1,52 +1,47 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Modal, Button } from 'react-bootstrap';
-import { useDispatch } from 'react-redux';
-import { toast } from 'react-toastify';
+import {
+  Modal, Button,
+} from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { removeChannel } from '../slices/channelsSlice';
+import { toast } from 'react-toastify';
+import { useRemoveChannelMutation } from '../../services/channelsApi';
 
-const RemoveChannel = ({
-  show,
-  onHide,
-  channelId,
-  token,
-  onChannelDeleted,
-}) => {
+const Remove = ({ onHide, modalInfo }) => {
+  const [removeChannel] = useRemoveChannelMutation();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
+  const currId = modalInfo.item.id;
 
-  const handleDelete = async () => {
+  const onSubmit = async () => {
     try {
-      await dispatch(removeChannel({ id: channelId, token }));
-      onChannelDeleted();
-      toast.success(t('modal.deleteChannel.sucess'));
-    } catch (error) {
-      console.error('Ошибка при удалении канала', error);
-    } finally {
+      await removeChannel(currId);
       onHide();
+      toast.success(t('modal.deleteChannel.success'));
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  return ReactDOM.createPortal(
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton>
+  return (
+    <Modal show centered>
+      <Modal.Header closeButton onHide={onHide}>
         <Modal.Title>{t('modal.deleteChannel.deleteChannel')}</Modal.Title>
       </Modal.Header>
+
       <Modal.Body>
         <p className="lead">{t('modal.deleteChannel.sure')}</p>
         <div className="d-flex justify-content-end">
-          <Button variant="secondary" onClick={onHide} className="me-2">
-            {t('modal.createChannel.cancel')}
-          </Button>
-          <Button variant="danger" onClick={handleDelete}>
+          <Button type="button" variant="secondary" className="me-2" onClick={() => onHide()}>{t('modal.createChannel.cancel')}</Button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={() => onSubmit()}
+          >
             {t('modal.deleteChannel.delete')}
           </Button>
         </div>
       </Modal.Body>
-    </Modal>,
-    document.body,
+    </Modal>
   );
 };
 
-export default RemoveChannel;
+export default Remove;

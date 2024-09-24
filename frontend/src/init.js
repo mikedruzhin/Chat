@@ -2,7 +2,6 @@ import i18next from 'i18next';
 import { initReactI18next, I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { Provider as RollBarProvider, ErrorBoundary } from '@rollbar/react';
-import Rollbar from 'rollbar';
 import App from './App';
 import store from './components/slices/index';
 import 'react-toastify/dist/ReactToastify.css';
@@ -24,11 +23,12 @@ const init = async () => {
     },
   });
 
-  const rollbar = new Rollbar({
-    accessToken: process.env.REACT_APP_ROLLBAR_ACCESS_TOKEN,
+  const rollbar = {
+    accessToken: process.env.REACT_APP_TOKEN,
     captureUncaught: true,
     captureUnhandledRejections: true,
-  });
+    environment: 'production',
+  };
 
   return (
     <Provider store={store}>

@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Form from './Form';
+import Form from './LoginPage';
 import Navigation from './Navigation';
-import routes from '../routes';
+import routes from '../utils/routes';
 
 const Login = () => {
   const navigate = useNavigate();

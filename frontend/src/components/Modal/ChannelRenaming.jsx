@@ -5,23 +5,20 @@ import {
 } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
-import { useAddChannelMutation } from '../../services/channelsApi';
+import { useEditChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
 import filter from '../../utils/filter';
-import { setActiveChannelId } from '../slices/appSlice';
 
-const Add = ({ channels, onHide }) => {
-  const dispatch = useDispatch();
-  const [addChannel] = useAddChannelMutation();
+const Rename = ({ channels, onHide, modalInfo }) => {
+  const [editChannel] = useEditChannelMutation();
   const { t } = useTranslation();
 
   const onSubmit = async (values) => {
+    const currId = modalInfo.item.id;
     try {
-      const response = await addChannel({ name: filter(values.body) });
+      await editChannel({ id: currId, body: { name: filter(values.body) } });
       onHide();
-      toast.success(t('modal.createChannel.channelCreated'));
-      dispatch(setActiveChannelId(response.data.id));
+      toast.success(t('modal.editChannel.renameChannelNotification'));
     } catch (err) {
       console.error(err);
     }
@@ -29,7 +26,7 @@ const Add = ({ channels, onHide }) => {
 
   const inputRef = useRef();
   useEffect(() => {
-    inputRef.current.focus();
+    inputRef.current.select();
   }, []);
 
   const names = channels.map(({ name }) => name);
@@ -37,14 +34,14 @@ const Add = ({ channels, onHide }) => {
   return (
     <Modal show centered>
       <Modal.Header closeButton onHide={onHide}>
-        <Modal.Title>{t('modal.createChannel.createNewChannel')}</Modal.Title>
+        <Modal.Title>{t('modal.editChannel.renameChannel')}</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <Formik
           validationSchema={newChannelShema(t, names)}
           onSubmit={onSubmit}
-          initialValues={{ body: '' }}
+          initialValues={{ body: modalInfo.item.name }}
           validateOnChange={false}
           validateOnBlur={false}
         >
@@ -81,4 +78,4 @@ const Add = ({ channels, onHide }) => {
   );
 };
 
-export default Add;
+export default Rename;

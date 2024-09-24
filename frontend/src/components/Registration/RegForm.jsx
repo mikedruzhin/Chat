@@ -1,173 +1,137 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Formik, Form, Field, useField,
-} from 'formik';
-import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
+/* eslint-disable jsx-quotes */
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Formik } from 'formik';
+import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
-import regImage from '../img/reg.jpg';
-import { useSignupUserMutation } from '../../services/usersApi';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import regImg from '../img/reg.jpg';
 import { logIn } from '../slices/authSlice';
+import { useSignupUserMutation } from '../../services/usersApi';
+import { signUpShema } from '../../utils/schema';
 
-const CustomErrorMessage = ({ name }) => {
-  const [field, meta] = useField(name); // eslint-disable-line
-  return meta.touched && meta.error ? (
-    <div className="invalid-tooltip">{meta.error}</div>
-  ) : null;
-};
-
-const RegistrationForm = () => {
-  const [signUpUser, { isLoading }] = useSignupUserMutation();
-  const dispatch = useDispatch();
+const SignUpPage = () => {
+  const [existingUser, setExistingUser] = useState(false);
+  const inputRef = useRef();
   const navigate = useNavigate();
-  const { error } = useSelector((state) => state.auth);
-  const [apiError, setApiError] = useState(null);
+  const dispatch = useDispatch();
+  const [signUpUser, { isLoading }] = useSignupUserMutation();
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (error && error.message === 'Username already exists') {
-      setApiError(t('regForm.regError'));
-    } else {
-      setApiError(null);
-    }
-  }, [error, t]);
+    inputRef.current.focus();
+  }, []);
 
-  const loginSchema = yup.object().shape({
-    name: yup
-      .string()
-      .trim()
-      .required(t('validation.required'))
-      .min(3, t('regForm.charactersCount'))
-      .max(20, t('validation.maxCount')),
-    password: yup
-      .string()
-      .required(t('validation.required'))
-      .min(6, t('validation.minCountPass')),
-    confirmPassword: yup
-      .string()
-      .oneOf([yup.ref('password'), null], t('validation.matchPass'))
-      .required(t('validation.matchPass')),
-  });
+  const onSubmit = async ({ username, password }) => {
+    try {
+      const data = await signUpUser({ username, password }).unwrap();
+      localStorage.setItem('user', data.username);
+      localStorage.setItem('token', data.token);
+      dispatch(logIn(data));
+      navigate('/');
+    } catch (err) {
+      if (err.status === 401) {
+        inputRef.current.select();
+        return;
+      }
+      if (err.status === 409) {
+        setExistingUser(true);
+        return;
+      }
+      toast.error(t('toast.errorNetwork'));
+      console.error(err);
+    }
+  };
 
   return (
-    <div className="card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5">
-      <div>
-        <img
-          src={regImage}
-          alt={t('loginPage.reg')}
-          className="rounded-circle"
-        />
+    <div className='h-100'>
+      <div className='d-flex flex-column h-100'>
+        <nav className='shadow-sm navbar navbar-expand-lg navbar-light bg-white'>
+          <div className='container'>
+            <a className='navbar-brand' href='/'>
+              Hexlet Chat
+            </a>
+          </div>
+        </nav>
+        <div className='card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5 '>
+          <div className='rounded-circle'>
+            <img src={regImg} alt='Регистрация' />
+          </div>
+          <Formik
+            validationSchema={signUpShema(t)}
+            onSubmit={onSubmit}
+            initialValues={{ username: '', password: '', confirmPassword: '' }}
+          >
+            {({
+              handleSubmit, handleChange, values, errors,
+            }) => (
+              <Form className='w-50' onSubmit={handleSubmit}>
+                <h1 className='text-center mb-4'>{t('regForm.register')}</h1>
+                <FloatingLabel label={t('regForm.userName')} className='mb-3' controlId='username'>
+                  <Form.Control
+                    name='username'
+                    autoComplete='username'
+                    type='text'
+                    required
+                    placeholder={t('regForm.userName')}
+                    onChange={handleChange}
+                    value={values.username}
+                    isInvalid={errors.username || existingUser}
+                    ref={inputRef}
+                  />
+                  <Form.Control.Feedback type='invalid'>
+                    {errors.username}
+                  </Form.Control.Feedback>
+                </FloatingLabel>
+                <FloatingLabel label={t('regForm.password')} className='mb-3' controlId='password'>
+                  <Form.Control
+                    name='password'
+                    autoComplete='new-password'
+                    type='password'
+                    required
+                    className='form-control'
+                    placeholder={t('regForm.password')}
+                    value={values.password}
+                    onChange={handleChange}
+                    isInvalid={errors.password || existingUser}
+                  />
+                  <Form.Control.Feedback type='invalid'>
+                    {errors.password}
+                  </Form.Control.Feedback>
+                </FloatingLabel>
+                <FloatingLabel label={t('regForm.confirmPassword')} className='mb-4' controlId='confirmPassword'>
+                  <Form.Control
+                    name='confirmPassword'
+                    autoComplete='new-password'
+                    type='password'
+                    required
+                    className='form-control'
+                    placeholder={t('regForm.confirmPassword')}
+                    value={values.confirmPassword}
+                    onChange={handleChange}
+                    isInvalid={errors.confirmPassword || existingUser}
+                  />
+                  <Form.Control.Feedback type='invalid'>
+                    {errors.confirmPassword}
+                    {existingUser && t('regForm.regErrors')}
+                  </Form.Control.Feedback>
+                </FloatingLabel>
+                <Button
+                  variant='outline-primary'
+                  type='submit'
+                  className='w-100'
+                  disabled={isLoading}
+                >
+                  {t('regForm.register')}
+                </Button>
+              </Form>
+            )}
+          </Formik>
+        </div>
       </div>
-      <Formik
-        initialValues={{ name: '', password: '', confirmPassword: '' }}
-        validationSchema={loginSchema}
-        onSubmit={async ({ username, password }, { setSubmitting, setErrors }) => {
-          try {
-            const data = await signUpUser({ username, password }).unwrap();
-            localStorage.setItem('user', JSON.stringify(data));  //переделать !!!!!!!
-            dispatch(logIn(data));
-            navigate('/');
-          } catch (regError) {
-            const errorMessage = regError.message === 'Username already exists'
-              ? t('regForm.regError')
-              : t('regForm.regErrors');
-
-            setErrors({
-              name: '',
-              password: '',
-              confirmPassword: errorMessage,
-            });
-            setApiError(errorMessage);
-            setSubmitting(false);
-          }
-        }}
-        validate={(values) => {
-          const validationErrors = {};
-          try {
-            loginSchema.validateSync(values, { abortEarly: false });
-          } catch (err) {
-            err.inner.forEach((error) => { // eslint-disable-line
-              validationErrors[error.path] = error.message;
-            });
-          }
-          return validationErrors;
-        }}
-      >
-        {({ errors, touched }) => (
-          <Form className="w-50">
-            <h1 className="text-center mb-4">{t('loginPage.reg')}</h1>
-            <div
-              className={`form-floating mb-3 ${
-                (errors.name && touched.name) || apiError ? 'has-error' : ''
-              }`}
-            >
-              <Field
-                placeholder={t('regForm.charactersCount')}
-                name="name"
-                autoComplete="username"
-                id="name"
-                className={`form-control ${
-                  (errors.name && touched.name) || apiError
-                    ? 'is-invalid'
-                    : ''
-                }`}
-              />
-              <label htmlFor="name" className="form-label">
-                {t('regForm.userName')}
-              </label>
-              <CustomErrorMessage name="name" />
-            </div>
-            <div
-              className={`form-floating mb-3 ${
-                (errors.password && touched.password) || apiError ? 'has-error' : ''
-              }`}
-            >
-              <Field
-                placeholder={t('regForm.charasterCountPassword')}
-                name="password"
-                aria-describedby="passwordHelpBlock"
-                type="password"
-                id="password"
-                className={`form-control ${
-                  (errors.password && touched.password) || apiError
-                    ? 'is-invalid'
-                    : ''
-                }`}
-              />
-              <label htmlFor="password">{t('loginPage.password')}</label>
-              <CustomErrorMessage name="password" />
-            </div>
-            <div
-              className={`form-floating mb-3 ${
-                (errors.confirmPassword && touched.confirmPassword) || apiError ? 'has-error' : ''
-              }`}
-            >
-              <Field
-                placeholder={t('regForm.confirmPassword')}
-                name="confirmPassword"
-                type="password"
-                id="confirmPassword"
-                className={`form-control ${
-                  (errors.confirmPassword && touched.confirmPassword) || apiError
-                    ? 'is-invalid'
-                    : ''
-                }`}
-              />
-              <label htmlFor="confirmPassword">
-                {t('regForm.confirmPassword')}
-              </label>
-              <CustomErrorMessage name="confirmPassword" />
-              {apiError && <div className="invalid-tooltip">{apiError}</div>}
-            </div>
-            <button type="submit" className="w-100 btn btn-outline-primary">
-              {t('regForm.register')}
-            </button>
-          </Form>
-        )}
-      </Formik>
     </div>
   );
 };
 
-export default RegistrationForm;
+export default SignUpPage;

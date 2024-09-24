@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import routes from '../routes';
+import routes from '../utils/routes';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');

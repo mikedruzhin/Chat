@@ -1,7 +1,5 @@
 /* eslint-disable no-param-reassign */
-//import axios from 'axios';
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-//import routes from '../../routes';
+import { createSlice } from '@reduxjs/toolkit';
 
 const authSlice = createSlice({
   name: 'auth',
@@ -21,7 +19,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     logIn(state, { payload }) {
-      console.log({ payload })
+      console.log({ payload });
       state.username = payload.username;
       state.status = 'succeeded';
       state.token = payload.token;

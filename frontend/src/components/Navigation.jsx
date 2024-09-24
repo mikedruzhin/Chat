@@ -1,5 +1,5 @@
 import React from 'react';
-import routes from '../routes';
+import routes from '../utils/routes';
 
 const Navigation = ({ child, token }) => (
   <nav className="shadow-sm navbar navbar-expand-lg navbar-light bg-white">

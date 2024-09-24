@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutUser } from './slices/authSlice';
-import routes from '../routes';
+import routes from '../utils/routes';
 
 const QuitBtn = () => {
   const { t } = useTranslation();
