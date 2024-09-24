@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React from 'react';
 import { useFormik } from 'formik';
 import {
   Modal, Button, Spinner, Form,
@@ -53,24 +52,7 @@ const NewChannelModal = ({
     },
   });
 
-  useEffect(() => {
-    if (isModalOpen) {
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-      document.body.setAttribute('data-rr-ui-modal-open', 'true');
-    } else {
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.removeAttribute('data-rr-ui-modal-open', 'true');
-    }
-    return () => {
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.removeAttribute('data-rr-ui-modal-open', 'true');
-    };
-  }, [isModalOpen]);
-
-  return ReactDOM.createPortal(
+  return (
     <Modal show={isModalOpen} onHide={onClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>{t('modal.createChannel.addChannel')}</Modal.Title>
@@ -112,8 +94,7 @@ const NewChannelModal = ({
           </Form.Group>
         </Form>
       </Modal.Body>
-    </Modal>,
-    document.body,
+    </Modal>
   );
 };
 

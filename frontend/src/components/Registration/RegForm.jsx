@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import regImage from '../img/reg.jpg';
-import { regUser } from '../slices/authSlice';
+import { useSignupUserMutation } from '../../services/usersApi';
+import { logIn } from '../slices/authSlice';
 
 const CustomErrorMessage = ({ name }) => {
   const [field, meta] = useField(name); // eslint-disable-line
@@ -17,6 +18,7 @@ const CustomErrorMessage = ({ name }) => {
 };
 
 const RegistrationForm = () => {
+  const [signUpUser, { isLoading }] = useSignupUserMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { error } = useSelector((state) => state.auth);
@@ -60,20 +62,12 @@ const RegistrationForm = () => {
       <Formik
         initialValues={{ name: '', password: '', confirmPassword: '' }}
         validationSchema={loginSchema}
-        onSubmit={async (values, { setSubmitting, setErrors }) => {
+        onSubmit={async ({ username, password }, { setSubmitting, setErrors }) => {
           try {
-            const resultAction = await dispatch(
-              regUser({
-                username: values.name,
-                password: values.password,
-              }),
-            );
-
-            if (regUser.fulfilled.match(resultAction)) {
-              navigate('/');
-            } else {
-              throw new Error(resultAction.error.message || 'Unknown error');
-            }
+            const data = await signUpUser({ username, password }).unwrap();
+            localStorage.setItem('user', JSON.stringify(data));  //переделать !!!!!!!
+            dispatch(logIn(data));
+            navigate('/');
           } catch (regError) {
             const errorMessage = regError.message === 'Username already exists'
               ? t('regForm.regError')

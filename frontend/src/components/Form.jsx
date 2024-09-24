@@ -6,10 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import routes from '../routes';
 import loginImage from './img/hello.jpg';
-import { loginUser } from './slices/authSlice';
+import { logIn } from './slices/authSlice';
+import { useLoginUserMutation } from '../services/usersApi';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Form = () => {
+  const [loginUser, { isLoading, error }] = useLoginUserMutation();
   const [loginError, setError] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -20,15 +22,12 @@ const Form = () => {
       username: '',
       password: '',
     },
-    onSubmit: async (values) => {
+    onSubmit: async ({ username, password }) => {
       try {
-        await dispatch(
-          loginUser({
-            username: values.username,
-            password: values.password,
-          }),
-        ).unwrap();
-
+        const data = await loginUser({ username, password }).unwrap();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', username);
+        dispatch(logIn(data));
         navigate(routes.chat);
       } catch (e) {
         if (e.statusCode === 401) {
@@ -97,7 +96,7 @@ const Form = () => {
           <div className="text-center">
             <span>{t('loginPage.withoutAcc')}</span>
             &nbsp;
-            <a href={routes.signUpPage}>{t('loginPage.reg')}</a>
+            <a href={`${routes.baseUrl}${routes.signUp}`}>{t('loginPage.reg')}</a>
           </div>
         </div>
       </div>

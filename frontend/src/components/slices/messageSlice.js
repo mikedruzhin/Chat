@@ -7,7 +7,7 @@ export const fetchMessages = createAsyncThunk(
   'messages/fetchMessages',
   async (token) => {
     try {
-      const response = await axios.get(routes.messages, {
+      const response = await axios.get(`${routes.baseUrl}${routes.messages}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -24,7 +24,7 @@ export const sendMessage = createAsyncThunk(
   'messages/sendMessage',
   async ({ message, token }) => {
     try {
-      const response = await axios.post(routes.messages, message, {
+      const response = await axios.post(`${routes.baseUrl}${routes.messages}`, message, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

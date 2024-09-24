@@ -7,7 +7,7 @@ export const fetchChannels = createAsyncThunk(
   'channels/fetchChannels',
   async (token) => {
     try {
-      const response = await axios.get(routes.channels, {
+      const response = await axios.get(`${routes.baseUrl}${routes.channels}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -28,7 +28,7 @@ export const createChannels = createAsyncThunk(
   async ({ name, token }, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        routes.channels,
+        `${routes.baseUrl}${routes.channels}`,
         { name },
         {
           headers: {
@@ -48,7 +48,7 @@ export const removeChannel = createAsyncThunk(
   'channels/removeChannel',
   async ({ id, token }) => {
     try {
-      await axios.delete(`${routes.channels}/${id}`, {
+      await axios.delete(`${routes.baseUrl}${routes.channels}/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -66,7 +66,7 @@ export const editChannel = createAsyncThunk(
   async ({ id, token, newName }) => {
     try {
       const response = await axios.patch(
-        `${routes.channels}/${id}`,
+        `${routes.baseUrl}${routes.channels}/${id}`,
         { name: newName },
         {
           headers: {

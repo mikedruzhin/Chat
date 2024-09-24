@@ -5,31 +5,26 @@ import { useNavigate } from 'react-router-dom';
 import Dropdown from 'react-bootstrap/Dropdown';
 import QuitBtn from './QuitBtn';
 import Navigation from './Navigation';
-import NewChannelModal from './Modal/CreateNewChannel';
-import EditChannelModal from './Modal/EditChannelName';
-import RemoveChannel from './Modal/RemoveChannel';
+import NewChannelModal from './Modal/NewChannelCreation';
+import EditChannelModal from './Modal/ChannelNameEdition';
+import RemoveChannel from './Modal/ChannelRemoving';
 import setupSocket from '../socket';
-import { logoutUser } from './slices/authSlice';
-import { fetchChannels, addChannel } from './slices/channelsSlice';
-import {
-  fetchMessages,
-  addMessage,
-  sendMessage as sendMessageSlice,
-} from './slices/messageSlice';
+
+import { useGetChannelsQuery } from '../services/channelsApi';
+import { useGetMessagesQuery, useAddMessageMutation } from '../services/messagesApi';
 import routes from '../routes';
 import { useProfanityFilter } from './ProfanityContext';
 
 const Chat = () => {
-  const token = useSelector((state) => state.auth.token);
-  const username = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch();
-  const channels = useSelector((state) => state.channels.channels);
+  const token = useSelector((state) => state.users.token);
+  const username = useSelector((state) => state.users.username);
+  
+  const { data: channels, refetch, isLoading } = useGetChannelsQuery();
+  console.log(useGetMessagesQuery());
   const [activeChannel, setActiveChannel] = useState(0);
-  console.log(channels);
-  const messages = useSelector((state) => state.message.messages);
-  console.log(messages);
+
+  const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const channelNames = channels.map((channel) => channel.name);
   const [socket, setSocket] = useState(null); // eslint-disable-line
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState(null);
@@ -42,13 +37,13 @@ const Chat = () => {
   const messagesRef = useRef();
   const inputRef = useRef();
 
-  const activeChannelMessage = channels[activeChannel]
+  /*const activeChannelMessage = channels[activeChannel]
     ? messages.filter(
       (message) => message.channelId === channels[activeChannel].id,
     )
     : [];
-
-  useEffect(() => {
+*/
+  /*useEffect(() => {
     const fetchData = async () => {
       try {
         if (token) {
@@ -59,7 +54,7 @@ const Chat = () => {
       } catch (error) {
         if (error.status === 401) {
           dispatch(logoutUser());
-          navigate(routes.loginPage);
+          navigate(`${routes.baseUrl}${routes.login}`);
         }
         console.error('Error fetching channels:', error);
       }
@@ -74,9 +69,9 @@ const Chat = () => {
     return () => {
       newSocket.disconnect();
     };
-  }, [dispatch, username]);
+  }, [dispatch, username]);*/
 
-  const handleMessageSubmit = async (e) => {
+  /*const handleMessageSubmit = async (e) => {
     e.preventDefault();
     const messageBody = e.target.body.value;
     const cleanMessage = filter.clean(messageBody);
@@ -94,7 +89,7 @@ const Chat = () => {
         console.error('Ошибка при отправке сообщения:', error);
       }
     }
-  };
+  };*/
 
   const handleOpenModal = () => setIsModalOpen(true);
 

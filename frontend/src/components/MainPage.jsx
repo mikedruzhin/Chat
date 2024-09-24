@@ -7,11 +7,11 @@ import routes from '../routes';
 
 const Login = () => {
   const navigate = useNavigate();
-  const token = useSelector((state) => state.auth.token);
+  const token = useSelector((state) => state.users.token);
 
   useEffect(() => {
     if (!token) {
-      navigate(routes.loginPage);
+      navigate(`${routes.baseUrl}${routes.login}`);
     }
   }, [navigate, token]);
   return (

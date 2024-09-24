@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import Login from './Components/MainPage';
-import PageNotFound from './Components/PageNotFound';
-import Chat from './Components/Chat';
-import ProtectedRoute from './Components/ProtectedRoute';
-import RegistrationPage from './Components/Registration/RegistrationPage';
+import Login from './components/MainPage';
+import PageNotFound from './components/PageNotFound';
+import Chat from './components/Chat';
+import ProtectedRoute from './components/ProtectedRoute';
+import RegistrationPage from './components/Registration/RegistrationPage';
 import routes from './routes';
-import { ProfanityProvider } from './Components/ProfanityContext';
+import { ProfanityProvider } from './components/ProfanityContext';
 
 const App = () => (
   <ProfanityProvider>
@@ -22,9 +22,9 @@ const App = () => (
               </ProtectedRoute>
               )}
           />
-          <Route path={routes.loginPage} element={<Login />} />
+          <Route path={`${routes.baseUrl}${routes.login}`} element={<Login />} />
           <Route path="*" element={<PageNotFound />} />
-          <Route path={routes.signUpPage} element={<RegistrationPage />} />
+          <Route path={`${routes.baseUrl}${routes.signUp}`} element={<RegistrationPage />} />
         </Routes>
       </div>
       <ToastContainer />

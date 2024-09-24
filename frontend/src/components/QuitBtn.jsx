@@ -13,7 +13,7 @@ const QuitBtn = () => {
 
   const handleClick = () => {
     dispatch(logoutUser());
-    navigate(routes.loginPage);
+    navigate(`${routes.baseUrl}${routes.login}`);
   };
 
   return (
