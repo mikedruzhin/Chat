@@ -3,7 +3,7 @@ import { initReactI18next, I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { Provider as RollBarProvider, ErrorBoundary } from '@rollbar/react';
 import App from './App';
-import store from './components/slices/index';
+import store from './slices/index';
 import 'react-toastify/dist/ReactToastify.css';
 import ru from './components/locales/ru';
 

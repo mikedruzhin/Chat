@@ -9,7 +9,7 @@ import { useDispatch } from 'react-redux';
 import { useAddChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
 import filter from '../../utils/filter';
-import { setActiveChannelId } from '../slices/appSlice';
+import { setActiveChannelId } from '../../slices/appSlice';
 
 const Add = ({ channels, onHide }) => {
   const dispatch = useDispatch();

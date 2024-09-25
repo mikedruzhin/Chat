@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import MessageForm from './messagesList.jsx';
 import { useGetChannelsQuery } from '../services/channelsApi';
-import { setActiveChannelId, showModal, hideModal } from './slices/appSlice.js';
+import { setActiveChannelId, showModal, hideModal } from '../slices/appSlice.js';
 import getModal from './Modal/index.js';
 import socket from '../utils/socket.js';
 

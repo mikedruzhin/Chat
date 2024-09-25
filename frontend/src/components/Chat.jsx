@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import ChannelsForm from './channelList';
 import QuitBtn from './QuitBtn';
-import { logoutUser } from './slices/authSlice';
+import { logoutUser } from '../slices/authSlice';
 import routes from '../utils/routes';
 
 const Chat = () => {

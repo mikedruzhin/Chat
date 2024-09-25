@@ -6,9 +6,9 @@ import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { logIn } from './slices/authSlice';
+import { logIn } from '../slices/authSlice';
 import { useLoginUserMutation } from '../services/usersApi';
-import loginImage from './img/hello.jpg';
+import loginImage from '../public/img/hello.jpg';
 
 const LoginPage = () => {
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
