@@ -29,7 +29,7 @@ const SignUpPage = () => {
   const onSubmit = async ({ username, password }) => {
     try {
       const data = await signUpUser({ username, password }).unwrap();
-      auth.logIn();
+      auth.logIn(data);
       dispatch(logIn(data));
       navigate(routes.chat);
     } catch (err) {

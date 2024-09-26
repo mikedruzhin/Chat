@@ -6,7 +6,7 @@ const authSlice = createSlice({
   initialState: {
     username: localStorage.getItem('user') || null,
     token: localStorage.getItem('token') || null,
-    status: 'idle',
+    loggedIn: false,
     error: null,
   },
   reducers: {
@@ -15,12 +15,12 @@ const authSlice = createSlice({
       localStorage.removeItem('user');
       state.username = null;
       state.token = null;
-      state.status = 'idle';
+      state.loggedIn = false;
       state.error = null;
     },
     logIn(state, { payload }) {
       state.username = payload.username;
-      state.status = 'succeeded';
+      state.loggedIn = true;
       state.token = payload.token;
       state.error = null;
     },

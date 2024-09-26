@@ -5,13 +5,12 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutUser } from '../slices/authSlice';
 import routes from '../utils/routes';
-import useAuth from '../hooks/useAuth';
 
 const QuitBtn = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const auth = useAuth();
+  const token = localStorage.getItem('token');
 
   const handleClick = () => {
     dispatch(logoutUser());
@@ -19,7 +18,7 @@ const QuitBtn = () => {
   };
 
   return (
-    auth.loggedIn && (<Button type="submit" onClick={handleClick}>{t('mainPage.quitBtn')}</Button>)
+    token && (<Button type="submit" onClick={handleClick}>{t('mainPage.quitBtn')}</Button>)
   );
 };
 

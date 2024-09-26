@@ -27,7 +27,7 @@ const LoginPage = () => {
   const onSubmit = async ({ username, password }) => {
     try {
       const data = await loginUser({ username, password }).unwrap();
-      auth.logIn();
+      auth.logIn(data);
       dispatch(logIn(data));
       navigate(routes.chat);
     } catch (err) {
@@ -35,7 +35,7 @@ const LoginPage = () => {
         inputRef.current.select();
         return;
       }
-      toast.error('toast.errorNetwork');
+      toast.error(t('toast.errorNetwork'));
       console.error(error);
     }
   };
