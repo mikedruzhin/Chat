@@ -18,7 +18,7 @@ const SignUpPage = () => {
   const inputRef = useRef();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [signUpUser, { isLoading, error }] = useSignupUserMutation();
+  const [signUpUser, { isLoading }] = useSignupUserMutation();
   const { t } = useTranslation();
   const auth = useAuth();
 
@@ -33,16 +33,12 @@ const SignUpPage = () => {
       dispatch(logIn(data));
       navigate(routes.chat);
     } catch (err) {
-      if (err.status === 401) {
-        inputRef.current.select();
-        return;
-      }
       if (err.status === 409) {
         setExistingUser(true);
-        return;
+      } else {
+        toast.error(t('toast.errorNetwork'));
       }
-      toast.error(t('toast.errorNetwork'));
-      console.error(error);
+      console.error(err);
     }
   };
 

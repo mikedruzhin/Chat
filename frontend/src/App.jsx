@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  BrowserRouter as Router, Routes, Route,
+  BrowserRouter as Router, Routes, Route, Link,
 } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
@@ -40,9 +40,9 @@ const App = () => {
       <div className="d-flex flex-column h-100">
         <nav className="shadow-sm navbar navbar-expand-lg navbar-light bg-white">
           <div className="container">
-            <a className="navbar-brand" href={routes.chat}>
+            <Link to={routes.chat} className="navbar-brand">
               {t('chatName')}
-            </a>
+            </Link>
             <QuitBtn />
           </div>
         </nav>
