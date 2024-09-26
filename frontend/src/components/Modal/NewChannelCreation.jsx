@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { Formik } from 'formik';
 import {
   Modal, FormGroup, FormControl, Button, Form, FormLabel,
@@ -8,13 +8,14 @@ import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { useAddChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
-import filter from '../../utils/filter';
+import { Context } from '../../init';
 import { setActiveChannelId } from '../../slices/appSlice';
 
 const Add = ({ channels, onHide }) => {
   const dispatch = useDispatch();
-  const [addChannel] = useAddChannelMutation();
+  const [addChannel, error] = useAddChannelMutation();
   const { t } = useTranslation();
+  const { filter } = useContext(Context);
 
   const onSubmit = async (values) => {
     try {
@@ -22,8 +23,8 @@ const Add = ({ channels, onHide }) => {
       onHide();
       toast.success(t('modal.createChannel.channelCreated'));
       dispatch(setActiveChannelId(response.data.id));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error(JSON.stringify(error.data));
     }
   };
 
@@ -70,7 +71,7 @@ const Add = ({ channels, onHide }) => {
                 </FormControl.Feedback>
               </FormGroup>
               <div className="d-flex justify-content-end">
-                <Button type="button" variant="secondary" className="me-2" onClick={() => onHide()}>{t('modal.createChannel.cancel')}</Button>
+                <Button type="button" variant="secondary" className="me-2" onClick={onHide}>{t('modal.createChannel.cancel')}</Button>
                 <Button type="submit" variant="primary">{t('modal.createChannel.send')}</Button>
               </div>
             </Form>

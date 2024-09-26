@@ -1,5 +1,6 @@
 const ru = {
   translation: {
+    chatName: 'Hexlet Chat',
     loginPage: {
       enter: 'Войти',
       nickname: 'Ваш Ник',

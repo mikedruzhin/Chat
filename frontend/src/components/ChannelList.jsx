@@ -1,15 +1,20 @@
-import React, { useEffect } from 'react';
-import cn from 'classnames';
+import React, { useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import MessageForm from './messagesList.jsx';
-import { useGetChannelsQuery } from '../services/channelsApi';
+import MessageForm from './MessagesList.jsx';
+import { useGetChannelsQuery, channelsApi } from '../services/channelsApi.js';
+import { messagesApi } from '../services/messagesApi.js';
 import { setActiveChannelId, showModal, hideModal } from '../slices/appSlice.js';
 import getModal from './Modal/index.js';
-import socket from '../utils/socket.js';
+import { Context } from '../init.js';
+import { defaultChannelId } from '../utils/defaultChannel.js';
+import renderChannel from '../utils/renderChannel.js';
+import routes from '../utils/routes.js';
+import useAuth from '../hooks/useAuth';
 
 const renderModals = ({
   appInfo, channels, onHide,
@@ -24,37 +29,51 @@ const renderModals = ({
 
 const ChannelsForm = () => {
   const {
-    data: channels, refetch, error: getChannelsError, isLoading,
+    data: channels, refetch, error: ChannelsError, isLoading,
   } = useGetChannelsQuery();
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const auth = useAuth();
+  const navigate = useNavigate();
   const appInfo = useSelector((state) => state.appControl);
+  const { socket } = useContext(Context);
   const { activeChannelId } = appInfo;
   const onHide = () => dispatch(hideModal());
 
   useEffect(() => {
-    if (getChannelsError) {
+    if (ChannelsError) {
       toast.error(t('toast.errorNetwork'));
-      throw getChannelsError;
+      auth.logOut();
+      navigate(routes.login);
+      throw ChannelsError;
     }
-  }, [dispatch, getChannelsError, t]);
+  }, [dispatch, ChannelsError, t, navigate, auth]);
 
   useEffect(() => {
-    function newChannelFunc() {
-      refetch();
+    function newChannelFunc(newChannel) {
+      dispatch(channelsApi.util.updateQueryData('getChannels', undefined, (draft) => {
+        draft.push(newChannel);
+      }));
     }
 
     function renameChannelFunc(editedChannel) {
-      refetch();
+      dispatch(channelsApi.util.updateQueryData('getChannels', undefined, (draft) => {
+        const filtered = draft.filter(({ id }) => id !== editedChannel.id);
+        filtered.push(editedChannel);
+        return filtered;
+      }));
       if (editedChannel.id === activeChannelId) {
         dispatch(setActiveChannelId(editedChannel.id));
       }
     }
 
     function removeChannelFunc(removedChannel) {
-      refetch();
+      dispatch(channelsApi.util.updateQueryData('getChannels', undefined, (draft) => (
+        draft.filter(({ id }) => id !== removedChannel.id))));
+      dispatch(messagesApi.util.updateQueryData('getMessages', undefined, (draft) => (
+        draft.filter(({ channelId }) => channelId !== removedChannel.id))));
       if (removedChannel.id === activeChannelId) {
-        dispatch(setActiveChannelId('1'));
+        dispatch(setActiveChannelId(defaultChannelId));
       }
     }
 
@@ -67,51 +86,30 @@ const ChannelsForm = () => {
       socket.off('renameChannel', renameChannelFunc);
       socket.off('removeChannel', removeChannelFunc);
     };
-  }, [activeChannelId, dispatch, refetch]);
+  }, [activeChannelId, dispatch, refetch, socket]);
 
-  if (isLoading) {
-    return (<p>{t('loading.text')}</p>);
-  }
-
-  const setClasses = (cur) => {
-    const channelClasses = cn('w-100', 'rounded-0', 'text-start', {
-      'text-truncate': cur.removable,
-      btn: true,
-      'btn-secondary': cur.id === activeChannelId,
-    });
-    return channelClasses;
+  const renderNavs = (channel) => {
+    const setActiveChannel = () => dispatch(setActiveChannelId(channel.id));
+    return (
+      <Dropdown as={ButtonGroup} className="d-flex">
+        {renderChannel(channel, setActiveChannel, activeChannelId)}
+        <Dropdown.Toggle
+          split
+          className="flex-grow-0"
+          variant={channel.id === activeChannelId ? 'secondary' : 'none'}
+          id="dropdown-split-basic"
+        >
+          <span className="visually-hidden">{t('mainPage.channelMenu')}</span>
+        </Dropdown.Toggle>
+        <Dropdown.Menu>
+          <Dropdown.Item onClick={() => dispatch(showModal({ type: 'removing', item: channel }))}>{t('mainPage.deleteChannel')}</Dropdown.Item>
+          <Dropdown.Item onClick={() => dispatch(showModal({ type: 'renaming', item: channel }))}>{t('mainPage.renameChannel')}</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+    );
   };
 
-  const renderChannelName = (channel) => (
-    <button
-      type="button"
-      onClick={() => dispatch(setActiveChannelId(channel.id))}
-      className={setClasses(channel)}
-    >
-      <span className="me-1">#</span>
-      {channel.name}
-    </button>
-  );
-
-  const renderNavs = (channel) => (
-    <Dropdown as={ButtonGroup} className="d-flex">
-      {renderChannelName(channel)}
-      <Dropdown.Toggle
-        split
-        className="flex-grow-0"
-        variant={channel.id === activeChannelId ? 'secondary' : 'none'}
-        id="dropdown-split-basic"
-      >
-        <span className="visually-hidden">{t('mainPage.channelMenu')}</span>
-      </Dropdown.Toggle>
-      <Dropdown.Menu>
-        <Dropdown.Item onClick={() => dispatch(showModal({ type: 'removing', item: channel }))}>{t('mainPage.deleteChannel')}</Dropdown.Item>
-        <Dropdown.Item onClick={() => dispatch(showModal({ type: 'renaming', item: channel }))}>{t('mainPage.renameChannel')}</Dropdown.Item>
-      </Dropdown.Menu>
-    </Dropdown>
-  );
-
-  return (
+  return isLoading ? (<p>{t('loading.text')}</p>) : (
     <div className="container h-100 my-4 overflow-hidden rounded shadow">
       <div className="row h-100 bg-white flex-md-row">
         <div className="col-4 col-md-2 border-end px-0 bg-light flex-column h-100 d-flex">
@@ -136,7 +134,11 @@ const ChannelsForm = () => {
               <li className="nav-item w-100" key={channel.id}>
                 {channel.removable
                   ? renderNavs(channel)
-                  : renderChannelName(channel)}
+                  : renderChannel(
+                    channel,
+                    () => dispatch(setActiveChannelId(channel.id)),
+                    activeChannelId,
+                  )}
               </li>
             ))}
           </ul>

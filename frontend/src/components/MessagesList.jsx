@@ -1,30 +1,40 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { Form } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Formik } from 'formik';
 import { toast } from 'react-toastify';
-import { useGetMessagesQuery, useAddMessageMutation } from '../services/messagesApi.js';
-import filter from '../utils/filter.js';
-import socket from '../utils/socket.js';
+import { useGetMessagesQuery, useAddMessageMutation, messagesApi } from '../services/messagesApi.js';
+import { Context } from '../init.js';
+import routes from '../utils/routes.js';
+import useAuth from '../hooks/useAuth';
 
 const MessageForm = ({ activeChannelId, channels }) => {
   const { data: messages, refetch, error: messageError } = useGetMessagesQuery();
-  const [addMessage, { isLoading }] = useAddMessageMutation();
+  const [addMessage, { isLoading, error }] = useAddMessageMutation();
+  const dispatch = useDispatch();
   const inputRef = useRef();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const { filter, socket } = useContext(Context);
 
   useEffect(() => {
     inputRef.current.focus();
     if (messageError) {
       toast.error(t('toast.errorNetwork'));
+      auth.logOut();
+      navigate(routes.login);
       throw messageError;
     }
-  }, [messageError, t]);
+  }, [messageError, t, navigate, auth]);
 
   useEffect(() => {
-    function getNewMessage() {
-      refetch();
+    function getNewMessage(newMessage) {
+      dispatch(messagesApi.util.updateQueryData('getMessages', undefined, (draft) => {
+        draft.push(newMessage);
+      }));
     }
 
     socket.on('newMessage', getNewMessage);
@@ -32,7 +42,7 @@ const MessageForm = ({ activeChannelId, channels }) => {
     return () => {
       socket.off('newMessage', getNewMessage);
     };
-  }, [refetch]);
+  }, [dispatch, refetch, socket]);
 
   const activeMessages = messages?.filter(({ channelId }) => channelId === activeChannelId) || [];
   const { username } = useSelector((state) => state.users);
@@ -46,9 +56,9 @@ const MessageForm = ({ activeChannelId, channels }) => {
           body: '',
         },
       });
-    } catch (err) {
+    } catch {
       toast.error(t('toast.errorNetwork'));
-      console.error(err);
+      console.error(error);
     }
   };
 

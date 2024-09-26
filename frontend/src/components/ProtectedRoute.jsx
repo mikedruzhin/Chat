@@ -1,15 +1,12 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import routes from '../utils/routes';
+import useAuth from '../hooks/useAuth';
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
+  const auth = useAuth();
 
-  if (!token) {
-    return <Navigate to={`${routes.baseUrl}${routes.login}`} />;
-  }
-
-  return children;
+  return auth.loggedIn ? (children) : (<Navigate to={`${routes.baseUrl}${routes.login}`} />);
 };
 
 export default ProtectedRoute;

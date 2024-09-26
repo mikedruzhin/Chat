@@ -6,18 +6,21 @@ import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import regImg from '../../public/img/reg.jpg';
-import { logIn } from '../../slices/authSlice';
-import { useSignupUserMutation } from '../../services/usersApi';
-import { signUpShema } from '../../utils/schema';
+import regImg from '../public/img/reg.jpg';
+import { logIn } from '../slices/authSlice';
+import { useSignupUserMutation } from '../services/usersApi';
+import { signUpShema } from '../utils/schema';
+import routes from '../utils/routes';
+import useAuth from '../hooks/useAuth';
 
 const SignUpPage = () => {
   const [existingUser, setExistingUser] = useState(false);
   const inputRef = useRef();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [signUpUser, { isLoading }] = useSignupUserMutation();
+  const [signUpUser, { isLoading, error }] = useSignupUserMutation();
   const { t } = useTranslation();
+  const auth = useAuth();
 
   useEffect(() => {
     inputRef.current.focus();
@@ -26,10 +29,9 @@ const SignUpPage = () => {
   const onSubmit = async ({ username, password }) => {
     try {
       const data = await signUpUser({ username, password }).unwrap();
-      localStorage.setItem('user', data.username);
-      localStorage.setItem('token', data.token);
+      auth.logIn();
       dispatch(logIn(data));
-      navigate('/');
+      navigate(routes.chat);
     } catch (err) {
       if (err.status === 401) {
         inputRef.current.select();
@@ -40,20 +42,13 @@ const SignUpPage = () => {
         return;
       }
       toast.error(t('toast.errorNetwork'));
-      console.error(err);
+      console.error(error);
     }
   };
 
   return (
     <div className='h-100'>
       <div className='d-flex flex-column h-100'>
-        <nav className='shadow-sm navbar navbar-expand-lg navbar-light bg-white'>
-          <div className='container'>
-            <a className='navbar-brand' href='/'>
-              Hexlet Chat
-            </a>
-          </div>
-        </nav>
         <div className='card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5 '>
           <div className='rounded-circle'>
             <img src={regImg} alt='Регистрация' />

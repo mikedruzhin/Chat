@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useRemoveChannelMutation } from '../../services/channelsApi';
 
 const Remove = ({ onHide, modalInfo }) => {
-  const [removeChannel] = useRemoveChannelMutation();
+  const [removeChannel, error] = useRemoveChannelMutation();
   const { t } = useTranslation();
   const currId = modalInfo.item.id;
 
@@ -16,8 +16,8 @@ const Remove = ({ onHide, modalInfo }) => {
       await removeChannel(currId);
       onHide();
       toast.success(t('modal.deleteChannel.success'));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error(JSON.stringify(error.data));
     }
   };
 
@@ -30,11 +30,11 @@ const Remove = ({ onHide, modalInfo }) => {
       <Modal.Body>
         <p className="lead">{t('modal.deleteChannel.sure')}</p>
         <div className="d-flex justify-content-end">
-          <Button type="button" variant="secondary" className="me-2" onClick={() => onHide()}>{t('modal.createChannel.cancel')}</Button>
+          <Button type="button" variant="secondary" className="me-2" onClick={onHide}>{t('modal.createChannel.cancel')}</Button>
           <Button
             type="button"
             variant="danger"
-            onClick={() => onSubmit()}
+            onClick={onSubmit}
           >
             {t('modal.deleteChannel.delete')}
           </Button>

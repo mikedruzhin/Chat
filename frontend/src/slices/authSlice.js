@@ -19,7 +19,6 @@ const authSlice = createSlice({
       state.error = null;
     },
     logIn(state, { payload }) {
-      console.log({ payload });
       state.username = payload.username;
       state.status = 'succeeded';
       state.token = payload.token;

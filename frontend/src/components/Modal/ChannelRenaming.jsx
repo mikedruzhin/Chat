@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { Formik } from 'formik';
 import {
   Modal, FormGroup, FormControl, Button, Form, FormLabel,
@@ -7,11 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useEditChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
-import filter from '../../utils/filter';
+import { Context } from '../../init';
 
 const Rename = ({ channels, onHide, modalInfo }) => {
-  const [editChannel] = useEditChannelMutation();
+  const [editChannel, error] = useEditChannelMutation();
   const { t } = useTranslation();
+  const { filter } = useContext(Context);
 
   const onSubmit = async (values) => {
     const currId = modalInfo.item.id;
@@ -19,8 +20,8 @@ const Rename = ({ channels, onHide, modalInfo }) => {
       await editChannel({ id: currId, body: { name: filter(values.body) } });
       onHide();
       toast.success(t('modal.editChannel.renameChannelNotification'));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error(JSON.stringify(error.data));
     }
   };
 
@@ -67,7 +68,7 @@ const Rename = ({ channels, onHide, modalInfo }) => {
                 </FormControl.Feedback>
               </FormGroup>
               <div className="d-flex justify-content-end">
-                <Button type="button" variant="secondary" className="me-2" onClick={() => onHide()}>{t('modal.createChannel.cancel')}</Button>
+                <Button type="button" variant="secondary" className="me-2" onClick={onHide}>{t('modal.createChannel.cancel')}</Button>
                 <Button type="submit" variant="primary">{t('modal.createChannel.send')}</Button>
               </div>
             </Form>

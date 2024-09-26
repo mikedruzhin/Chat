@@ -3,12 +3,14 @@ import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Formik } from 'formik';
 import { Button, FloatingLabel, Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { logIn } from '../slices/authSlice';
 import { useLoginUserMutation } from '../services/usersApi';
 import loginImage from '../public/img/hello.jpg';
+import routes from '../utils/routes';
+import useAuth from '../hooks/useAuth';
 
 const LoginPage = () => {
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
@@ -16,6 +18,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const auth = useAuth();
 
   useEffect(() => {
     inputRef.current.focus();
@@ -24,17 +27,16 @@ const LoginPage = () => {
   const onSubmit = async ({ username, password }) => {
     try {
       const data = await loginUser({ username, password }).unwrap();
-      localStorage.setItem('user', data.username);
-      localStorage.setItem('token', data.token);
+      auth.logIn();
       dispatch(logIn(data));
-      navigate('/');
+      navigate(routes.chat);
     } catch (err) {
       if (err.status === 401) {
         inputRef.current.select();
         return;
       }
       toast.error('toast.errorNetwork');
-      console.error(err);
+      console.error(error);
     }
   };
 
@@ -97,7 +99,7 @@ const LoginPage = () => {
             <div className='card-footer p-4'>
               <div className='text-center'>
                 <span>{t('loginPage.withoutAcc')}</span>
-                <a href='/signup'>{t('loginPage.reg')}</a>
+                <Link to="/signup">{t('loginPage.reg')}</Link>
               </div>
             </div>
           </div>
