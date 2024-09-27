@@ -10,6 +10,7 @@ const ru = {
       loginError: 'Неверные имя пользователя или пароль',
     },
     mainPage: {
+      isLoading: 'Страница загружается',
       channels: 'Каналы',
       enterMessage: 'Введите сообщение...',
       send: 'Отправить',

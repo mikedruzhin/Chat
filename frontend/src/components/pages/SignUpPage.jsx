@@ -1,13 +1,11 @@
 /* eslint-disable jsx-quotes */
 import React, { useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { Formik } from 'formik';
 import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import regImg from '../../public/img/reg.jpg';
-import { logIn } from '../../slices/authSlice';
 import { useSignupUserMutation } from '../../services/usersApi';
 import { signUpShema } from '../../utils/schema';
 import routes from '../../utils/routes';
@@ -17,7 +15,6 @@ const SignUpPage = () => {
   const [existingUser, setExistingUser] = useState(false);
   const inputRef = useRef();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [signUpUser, { isLoading }] = useSignupUserMutation();
   const { t } = useTranslation();
   const auth = useAuth();
@@ -30,7 +27,6 @@ const SignUpPage = () => {
     try {
       const data = await signUpUser({ username, password }).unwrap();
       auth.logIn(data);
-      dispatch(logIn(data));
       navigate(routes.chat);
     } catch (err) {
       if (err.status === 409) {

@@ -1,12 +1,10 @@
 /* eslint-disable jsx-quotes */
 import React, { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
 import { Formik } from 'formik';
 import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { logIn } from '../../slices/authSlice';
 import { useLoginUserMutation } from '../../services/usersApi';
 import loginImage from '../../public/img/hello.jpg';
 import routes from '../../utils/routes';
@@ -16,7 +14,6 @@ const LoginPage = () => {
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
   const inputRef = useRef();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { t } = useTranslation();
   const auth = useAuth();
 
@@ -28,7 +25,6 @@ const LoginPage = () => {
     try {
       const data = await loginUser({ username, password }).unwrap();
       auth.logIn(data);
-      dispatch(logIn(data));
       navigate(routes.chat);
     } catch (err) {
       if (err.status === 401) {
