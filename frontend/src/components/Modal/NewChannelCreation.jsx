@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Formik } from 'formik';
 import {
   Modal, FormGroup, FormControl, Button, Form, FormLabel,
@@ -6,20 +6,19 @@ import {
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
+import filter from 'leo-profanity';
 import { useAddChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
-import { Context } from '../../init';
 import { setActiveChannelId } from '../../slices/appSlice';
 
 const Add = ({ channels, onHide }) => {
   const dispatch = useDispatch();
   const [addChannel, error] = useAddChannelMutation();
   const { t } = useTranslation();
-  const { filter } = useContext(Context);
 
   const onSubmit = async (values) => {
     try {
-      const response = await addChannel({ name: filter(values.body) });
+      const response = await addChannel({ name: filter.clean(values.body) });
       onHide();
       toast.success(t('modal.createChannel.channelCreated'));
       dispatch(setActiveChannelId(response.data.id));

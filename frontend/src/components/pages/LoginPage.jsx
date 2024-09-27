@@ -6,11 +6,11 @@ import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { logIn } from '../slices/authSlice';
-import { useLoginUserMutation } from '../services/usersApi';
-import loginImage from '../public/img/hello.jpg';
-import routes from '../utils/routes';
-import useAuth from '../hooks/useAuth';
+import { logIn } from '../../slices/authSlice';
+import { useLoginUserMutation } from '../../services/usersApi';
+import loginImage from '../../public/img/hello.jpg';
+import routes from '../../utils/routes';
+import useAuth from '../../hooks/useAuth';
 
 const LoginPage = () => {
   const [loginUser, { isLoading, error }] = useLoginUserMutation();

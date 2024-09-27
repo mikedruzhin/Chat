@@ -1,14 +1,12 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { Form } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Formik } from 'formik';
 import { toast } from 'react-toastify';
+import filter from 'leo-profanity';
 import { useGetMessagesQuery, useAddMessageMutation, messagesApi } from '../services/messagesApi.js';
-import { Context } from '../init.js';
-import routes from '../utils/routes.js';
-import useAuth from '../hooks/useAuth';
+import SocketContext from '../contexts/SocketContext.jsx';
 
 const MessageForm = ({ activeChannelId, channels }) => {
   const { data: messages, refetch, error: messageError } = useGetMessagesQuery();
@@ -16,19 +14,15 @@ const MessageForm = ({ activeChannelId, channels }) => {
   const dispatch = useDispatch();
   const inputRef = useRef();
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const auth = useAuth();
-  const { filter, socket } = useContext(Context);
+  const socket = useContext(SocketContext);
 
   useEffect(() => {
     inputRef.current.focus();
     if (messageError) {
       toast.error(t('toast.errorNetwork'));
-      auth.logOut();
-      navigate(routes.login);
-      throw messageError;
+      console.error(messageError);
     }
-  }, [messageError, t, navigate, auth]);
+  }, [messageError, t]);
 
   useEffect(() => {
     function getNewMessage(newMessage) {
@@ -49,7 +43,7 @@ const MessageForm = ({ activeChannelId, channels }) => {
 
   const onSubmit = async (values, actions) => {
     try {
-      const newMessage = { body: filter(values.body), channelId: activeChannelId, username };
+      const newMessage = { body: filter.clean(values.body), channelId: activeChannelId, username };
       await addMessage(newMessage).unwrap();
       actions.resetForm({
         values: {

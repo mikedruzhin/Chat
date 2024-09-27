@@ -1,23 +1,22 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Formik } from 'formik';
 import {
   Modal, FormGroup, FormControl, Button, Form, FormLabel,
 } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
+import filter from 'leo-profanity';
 import { useEditChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
-import { Context } from '../../init';
 
 const Rename = ({ channels, onHide, modalInfo }) => {
   const [editChannel, error] = useEditChannelMutation();
   const { t } = useTranslation();
-  const { filter } = useContext(Context);
 
   const onSubmit = async (values) => {
     const currId = modalInfo.item.id;
     try {
-      await editChannel({ id: currId, body: { name: filter(values.body) } });
+      await editChannel({ id: currId, body: { name: filter.clean(values.body) } });
       onHide();
       toast.success(t('modal.editChannel.renameChannelNotification'));
     } catch {

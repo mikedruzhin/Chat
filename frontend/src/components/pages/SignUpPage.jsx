@@ -6,12 +6,12 @@ import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import regImg from '../public/img/reg.jpg';
-import { logIn } from '../slices/authSlice';
-import { useSignupUserMutation } from '../services/usersApi';
-import { signUpShema } from '../utils/schema';
-import routes from '../utils/routes';
-import useAuth from '../hooks/useAuth';
+import regImg from '../../public/img/reg.jpg';
+import { logIn } from '../../slices/authSlice';
+import { useSignupUserMutation } from '../../services/usersApi';
+import { signUpShema } from '../../utils/schema';
+import routes from '../../utils/routes';
+import useAuth from '../../hooks/useAuth';
 
 const SignUpPage = () => {
   const [existingUser, setExistingUser] = useState(false);

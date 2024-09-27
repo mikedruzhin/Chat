@@ -1,33 +1,30 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BrowserRouter as Router, Routes, Route, Link,
 } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import LoginPage from './components/LoginPage';
-import PageNotFound from './components/PageNotFound';
-import Chat from './components/Chat';
+import LoginPage from './components/pages/LoginPage';
+import PageNotFound from './components/pages/PageNotFound';
+import Chat from './components/pages/Chat.jsx';
 import QuitBtn from './components/QuitBtn';
 import ProtectedRoute from './components/ProtectedRoute';
-import SignUpPage from './components/SignUpPage';
+import SignUpPage from './components/pages/SignUpPage';
 import routes from './utils/routes';
 import AuthContext from './contexts/AuthContext.jsx';
 
 const AuthProvider = ({ children }) => {
-  const [loggedIn, setLoggedIn] = useState(false);
   const logIn = (data) => {
     localStorage.setItem('user', data.username);
     localStorage.setItem('token', data.token);
-    setLoggedIn(true);
   };
   const logOut = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    setLoggedIn(false);
   };
 
   return (
-    <AuthContext.Provider value={{ loggedIn, logIn, logOut }}>
+    <AuthContext.Provider value={{ logIn, logOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import ChannelsForm from './ChannelList';
+import ChannelsForm from '../ChannelList';
 
 const Chat = () => (
   <div className="h-100">

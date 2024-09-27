@@ -10,11 +10,11 @@ import { useGetChannelsQuery, channelsApi } from '../services/channelsApi.js';
 import { messagesApi } from '../services/messagesApi.js';
 import { setActiveChannelId, showModal, hideModal } from '../slices/appSlice.js';
 import getModal from './Modal/index.js';
-import { Context } from '../init.js';
 import { defaultChannelId } from '../utils/defaultChannel.js';
 import renderChannel from '../utils/renderChannel.js';
 import routes from '../utils/routes.js';
 import useAuth from '../hooks/useAuth';
+import SocketContext from '../contexts/SocketContext.jsx';
 
 const renderModals = ({
   appInfo, channels, onHide,
@@ -36,7 +36,7 @@ const ChannelsForm = () => {
   const auth = useAuth();
   const navigate = useNavigate();
   const appInfo = useSelector((state) => state.appControl);
-  const { socket } = useContext(Context);
+  const socket = useContext(SocketContext);
   const { activeChannelId } = appInfo;
   const onHide = () => dispatch(hideModal());
 
