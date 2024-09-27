@@ -11,8 +11,7 @@
 Hexlet chat is a simplified version of Slack written in React. You can use all the features of the chat: register, create channels on various topics, communicate with other people.
 To test it yourself, try to register or log in as admin. To do this, enter the data:
 
-login: admin 
-password: admin
+login: admin  password: admin
 
 ## Install
 
