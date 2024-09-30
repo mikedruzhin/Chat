@@ -7,17 +7,17 @@ import { toast } from 'react-toastify';
 import { useRemoveChannelMutation } from '../../services/channelsApi';
 
 const Remove = ({ onHide, modalInfo }) => {
-  const [removeChannel, error] = useRemoveChannelMutation();
+  const [removeChannel] = useRemoveChannelMutation();
   const { t } = useTranslation();
   const currId = modalInfo.item.id;
 
   const onSubmit = async () => {
     try {
-      await removeChannel(currId);
+      await removeChannel(currId).unwrap();
       onHide();
       toast.success(t('modal.deleteChannel.success'));
-    } catch {
-      toast.error(JSON.stringify(error.data));
+    } catch (error) {
+      toast.error(error);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -14,7 +14,7 @@ import { defaultChannelId } from '../utils/defaultChannel.js';
 import renderChannel from '../utils/renderChannel.js';
 import routes from '../utils/routes.js';
 import useAuth from '../hooks/useAuth';
-import SocketContext from '../contexts/SocketContext.jsx';
+import useSocket from '../hooks/useSocket';
 
 const renderModals = ({
   appInfo, channels, onHide,
@@ -29,45 +29,42 @@ const renderModals = ({
 
 const ChannelsForm = () => {
   const {
-    data: channels, refetch, error: ChannelsError, isLoading,
+    data: channels, error: channelsError, isLoading,
   } = useGetChannelsQuery();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
   const appInfo = useSelector((state) => state.appControl);
-  const socket = useContext(SocketContext);
+  const socket = useSocket();
   const { activeChannelId } = appInfo;
   const onHide = () => dispatch(hideModal());
 
   useEffect(() => {
-    if (ChannelsError) {
+    if (channelsError) {
       toast.error(t('toast.errorNetwork'));
       auth.logOut();
       navigate(routes.login);
-      throw ChannelsError;
     }
-  }, [dispatch, ChannelsError, t, navigate, auth]);
+  }, [dispatch, channelsError, t, navigate, auth]);
 
   useEffect(() => {
-    function newChannelFunc(newChannel) {
+    const newChannelFunc = (newChannel) => {
       dispatch(channelsApi.util.updateQueryData('getChannels', undefined, (draft) => {
         draft.push(newChannel);
       }));
-    }
+    };
 
-    function renameChannelFunc(editedChannel) {
+    const renameChannelFunc = (editedChan) => {
+      console.log(editedChan);
       dispatch(channelsApi.util.updateQueryData('getChannels', undefined, (draft) => {
-        const filtered = draft.filter(({ id }) => id !== editedChannel.id);
-        filtered.push(editedChannel);
-        return filtered;
+        const newChan = draft
+          .map(({ name, id }) => (id === editedChan.id ? editedChan.name : name));
+        return newChan;
       }));
-      if (editedChannel.id === activeChannelId) {
-        dispatch(setActiveChannelId(editedChannel.id));
-      }
-    }
+    };
 
-    function removeChannelFunc(removedChannel) {
+    const removeChannelFunc = (removedChannel) => {
       dispatch(channelsApi.util.updateQueryData('getChannels', undefined, (draft) => (
         draft.filter(({ id }) => id !== removedChannel.id))));
       dispatch(messagesApi.util.updateQueryData('getMessages', undefined, (draft) => (
@@ -75,7 +72,7 @@ const ChannelsForm = () => {
       if (removedChannel.id === activeChannelId) {
         dispatch(setActiveChannelId(defaultChannelId));
       }
-    }
+    };
 
     socket.on('newChannel', newChannelFunc);
     socket.on('renameChannel', renameChannelFunc);
@@ -86,7 +83,7 @@ const ChannelsForm = () => {
       socket.off('renameChannel', renameChannelFunc);
       socket.off('removeChannel', removeChannelFunc);
     };
-  }, [activeChannelId, dispatch, refetch, socket]);
+  }, [activeChannelId, dispatch, socket]);
 
   const renderNavs = (channel) => {
     const setActiveChannel = () => dispatch(setActiveChannelId(channel.id));

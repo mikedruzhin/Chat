@@ -9,8 +9,8 @@ import { useGetMessagesQuery, useAddMessageMutation, messagesApi } from '../serv
 import SocketContext from '../contexts/SocketContext.jsx';
 
 const MessageForm = ({ activeChannelId, channels }) => {
-  const { data: messages, refetch, error: messageError } = useGetMessagesQuery();
-  const [addMessage, { isLoading, error }] = useAddMessageMutation();
+  const { data: messages, error: messageError } = useGetMessagesQuery();
+  const [addMessage, { isLoading }] = useAddMessageMutation();
   const dispatch = useDispatch();
   const inputRef = useRef();
   const { t } = useTranslation();
@@ -25,18 +25,18 @@ const MessageForm = ({ activeChannelId, channels }) => {
   }, [messageError, t]);
 
   useEffect(() => {
-    function getNewMessage(newMessage) {
+    const getNewMessage = (newMessage) => {
       dispatch(messagesApi.util.updateQueryData('getMessages', undefined, (draft) => {
         draft.push(newMessage);
       }));
-    }
+    };
 
     socket.on('newMessage', getNewMessage);
 
     return () => {
       socket.off('newMessage', getNewMessage);
     };
-  }, [dispatch, refetch, socket]);
+  }, [dispatch, socket]);
 
   const activeMessages = messages?.filter(({ channelId }) => channelId === activeChannelId) || [];
   const { username } = useSelector((state) => state.users);
@@ -50,7 +50,7 @@ const MessageForm = ({ activeChannelId, channels }) => {
           body: '',
         },
       });
-    } catch {
+    } catch (error) {
       toast.error(t('toast.errorNetwork'));
       console.error(error);
     }

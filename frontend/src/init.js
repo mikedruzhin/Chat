@@ -15,8 +15,6 @@ const resources = {
   ru,
 };
 
-export const Context = React.createContext({});
-
 const i18n = i18next.createInstance();
 
 const init = async () => {

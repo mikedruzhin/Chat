@@ -10,17 +10,17 @@ import { useEditChannelMutation } from '../../services/channelsApi';
 import { newChannelShema } from '../../utils/schema';
 
 const Rename = ({ channels, onHide, modalInfo }) => {
-  const [editChannel, error] = useEditChannelMutation();
+  const [editChannel] = useEditChannelMutation();
   const { t } = useTranslation();
 
   const onSubmit = async (values) => {
     const currId = modalInfo.item.id;
     try {
-      await editChannel({ id: currId, body: { name: filter.clean(values.body) } });
+      await editChannel({ id: currId, body: { name: filter.clean(values.body) } }).unwrap();
       onHide();
       toast.success(t('modal.editChannel.renameChannelNotification'));
-    } catch {
-      toast.error(JSON.stringify(error.data));
+    } catch (error) {
+      toast.error(error);
     }
   };
 

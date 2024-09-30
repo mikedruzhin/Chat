@@ -13,17 +13,17 @@ import { setActiveChannelId } from '../../slices/appSlice';
 
 const Add = ({ channels, onHide }) => {
   const dispatch = useDispatch();
-  const [addChannel, error] = useAddChannelMutation();
+  const [addChannel] = useAddChannelMutation();
   const { t } = useTranslation();
 
   const onSubmit = async (values) => {
     try {
-      const response = await addChannel({ name: filter.clean(values.body) });
+      const response = await addChannel({ name: filter.clean(values.body) }).unwrap();
       onHide();
       toast.success(t('modal.createChannel.channelCreated'));
       dispatch(setActiveChannelId(response.data.id));
-    } catch {
-      toast.error(JSON.stringify(error.data));
+    } catch (error) {
+      toast.error(error);
     }
   };
 
