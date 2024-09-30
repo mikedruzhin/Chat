@@ -1,8 +1,9 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
+import { defaultChannelId } from '../utils/defaultChannel';
 
 const initialState = {
-  activeChannelId: '1',
+  activeChannelId: defaultChannelId,
   modalInfo: { type: null, item: null },
 };
 

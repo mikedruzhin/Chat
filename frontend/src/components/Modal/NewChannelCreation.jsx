@@ -21,7 +21,7 @@ const Add = ({ channels, onHide }) => {
       const response = await addChannel({ name: filter.clean(values.body) }).unwrap();
       onHide();
       toast.success(t('modal.createChannel.channelCreated'));
-      dispatch(setActiveChannelId(response.data.id));
+      dispatch(setActiveChannelId(response.id));
     } catch (error) {
       toast.error(error);
     }

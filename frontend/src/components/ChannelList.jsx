@@ -87,6 +87,7 @@ const ChannelsForm = () => {
 
   const renderNavs = (channel) => {
     const setActiveChannel = () => dispatch(setActiveChannelId(channel.id));
+    console.log(activeChannelId);
     return (
       <Dropdown as={ButtonGroup} className="d-flex">
         {renderChannel(channel, setActiveChannel, activeChannelId)}
